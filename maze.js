@@ -4,9 +4,6 @@ function setup () {
     cols = Math.floor(canvas.width / cellSize);
     rows = Math.floor(canvas.height / cellSize);
 
-    console.log(rows);
-    console.log(cols);
-
     for (let x = 0; x < rows; x++) {
         for (let y = 0; y < cols; y++) {
 
@@ -18,9 +15,6 @@ function setup () {
             grid.push(cell);
         }
     }
-
-    console.log(grid);
-
 
     // Connect the cells with their neighbors (i.e. the adjacent cells).
     for (let i = 0; i < grid.length; i++) {
@@ -35,7 +29,7 @@ function setup () {
         }
     }
 
-    DFS(0,0);
+    backtracker(0,0);
 }
 
 
@@ -48,17 +42,43 @@ function index (x, y) {
 }
 
 
-function DFS (x, y) {
+function backtracker (x, y) {
     var curr = grid[index(x, y)];
     curr.visited = true;
     curr.show();
 
     var next = curr.randomNeighbor();
 
-    if (next) {
-       setTimeout( function () {
-           DFS(next.x, next.y);
-       }, 250);
+    while (next) {
+        removeWalls(curr, next);
+        curr.show();
+        backtracker(next.x, next.y);
+        next = curr.randomNeighbor();
+    }
+}
+
+
+function removeWalls(cellA, cellB) {
+    var i = cellA.y - cellB.y;
+
+    if (i === 1) {
+        cellA.walls[3] = false;
+        cellB.walls[1] = false;
+    }
+    else if (i === -1) {
+        cellA.walls[1] = false;
+        cellB.walls[3] = false;
+    }
+
+    var j = cellA.x - cellB.x;
+
+    if (j === 1) {
+        cellA.walls[0] = false;
+        cellB.walls[2] = false;
+    }
+    else if (j === -1) {
+        cellA.walls[2] = false;
+        cellB.walls[0] = false;
     }
 }
 
