@@ -45,26 +45,42 @@ function index (x, y) {
 }
 
 
+/* Modified version of the recursive backtracking/depth first search algorithm.
+ */
 function backtracker () {
+    // Revert the color of the previous cell visited by setting the prev's
+    // current field to false.
     if (prev) {
         prev.current = false;
+
+        // Update prev on the canvas.
         prev.show();
     }
 
     curr.visited = true;
+
+    // Set the curr's current field to true, so that the current cell has a 
+    // unique color.
     curr.current = true;
+
+    // Call show() to update curr on the canvas.
     curr.show();
 
+    // Get a random neighbor that has not been visited.
     var next = curr.randomNeighbor();
 
     if (next) {
+        // Remove the walls between curr and the neighbor.
         removeWalls(curr, next);
+
+        // Call show() to update curr on the canvas.
         curr.show();
 
         stack.push(curr);
         prev = curr;
         curr = next;
     }
+    // There are no neighbors that have not been visited, so start backtracking.
     else {
         prev = curr;
         curr = stack.pop();
@@ -108,6 +124,8 @@ function createCanvas (h, w) {
 }
 
 
+/* Generates a line from the starting point to the ending point.
+ */
 function line (startX, startY, endX, endY) {
     ctx.beginPath();
     ctx.moveTo(startX, startY);
@@ -181,4 +199,3 @@ ctx.rect(0, 0, canvas.width, canvas.height);
 var curr, prev;
 var stack = [];
 setup();
-
