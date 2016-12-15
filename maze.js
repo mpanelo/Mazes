@@ -48,7 +48,7 @@ function index (x, y) {
 /* Modified version of the recursive backtracking/depth first search algorithm.
  */
 function backtracker () {
-    // Revert the color of the previous cell visited by setting the prev's
+    // Revert the color of the previous visited cell by setting the prev's
     // current field to false.
     if (prev) {
         prev.current = false;
@@ -140,15 +140,35 @@ class Cell {
     constructor (x, y) {
         this.x = x;
         this.y = y;
+
+        // index 0 = top, index 1 = right, index 2 = bottom, index 3 = left
         this.walls = [true, true, true, true];
+
         this.visited = false;
         this.current = false;
+
+        // The neighbors of this cell.
         this.neighbors = [];
     }
 
     show () {
+        
+        // This generates the coordinates on the canvas. (Coordinates on the
+        // canvas are a bit counter-intuitive).
         var i = this.y*cellSize;
         var j = this.x*cellSize;
+
+
+        /*  Choose a color fill for the rectangle
+         *
+         *  1) The cell is the current cell explored, then the color fill is 
+         *     light blue.
+         *  2) The cell is not the current cell explored, but it has been
+         *     visited, then the color is dark blue.
+         *  3) The cell has neither been visited or the current cell explored,
+         *     then it is given a default color.
+         *
+         */
 
         if (this.current) ctx.fillStyle = '#9999ff';
         else if (this.visited) ctx.fillStyle = '#4500B2';
@@ -156,9 +176,13 @@ class Cell {
 
         ctx.fillRect(i, j, cellSize, cellSize);
 
+        // Create a top wall if the wall exists.
         if (this.walls[0]) line(i, j, i + cellSize, j);
+        // Create a right wall if the wall exists.
         if (this.walls[1]) line(i + cellSize, j, i + cellSize, j + cellSize);
+        // Create a bottom wall if the wall exists.
         if (this.walls[2]) line(i + cellSize, j + cellSize, i, j + cellSize);
+        // Create a right wall if the wall exists.
         if (this.walls[3]) line(i, j + cellSize, i, j);
     }
 
