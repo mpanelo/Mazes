@@ -29,7 +29,10 @@ function setup () {
         }
     }
 
-    backtracker(0,0);
+    // Set the initial cell to be the most top-left cell.
+    curr = grid[0];
+    // start thte animation.
+    window.requestAnimationFrame(backtracker);
 }
 
 
@@ -42,19 +45,32 @@ function index (x, y) {
 }
 
 
-function backtracker (x, y) {
-    var curr = grid[index(x, y)];
+function backtracker () {
+    if (prev) {
+        prev.current = false;
+        prev.show();
+    }
+
     curr.visited = true;
+    curr.current = true;
     curr.show();
 
     var next = curr.randomNeighbor();
 
-    while (next) {
+    if (next) {
         removeWalls(curr, next);
         curr.show();
-        backtracker(next.x, next.y);
-        next = curr.randomNeighbor();
+
+        stack.push(curr);
+        prev = curr;
+        curr = next;
     }
+    else {
+        prev = curr;
+        curr = stack.pop();
+    }
+
+    window.requestAnimationFrame(backtracker);
 }
 
 
@@ -91,11 +107,6 @@ function createCanvas (h, w) {
     return canvas;
 }
 
-function background (canvas, color) {
-    ctx.fillStyle = color;
-    ctx.fillRect(0,0,canvas.width, canvas.height);
-}
-
 
 function line (startX, startY, endX, endY) {
     ctx.beginPath();
@@ -113,6 +124,7 @@ class Cell {
         this.y = y;
         this.walls = [true, true, true, true];
         this.visited = false;
+        this.current = false;
         this.neighbors = [];
     }
 
@@ -120,10 +132,11 @@ class Cell {
         var i = this.y*cellSize;
         var j = this.x*cellSize;
 
-        if (this.visited) {
-            ctx.fillStyle = '#4500B2';
-            ctx.fillRect(i, j, cellSize, cellSize);
-        }
+        if (this.current) ctx.fillStyle = '#9999ff';
+        else if (this.visited) ctx.fillStyle = '#4500B2';
+        else ctx.fillStyle = '#47476b'; 
+
+        ctx.fillRect(i, j, cellSize, cellSize);
 
         if (this.walls[0]) line(i, j, i + cellSize, j);
         if (this.walls[1]) line(i + cellSize, j, i + cellSize, j + cellSize);
@@ -159,9 +172,13 @@ var cols, rows;
 var cellSize = 50;
 var grid = [];
 
-var canvas = createCanvas(600, 400);
-var ctx = canvas.getContext('2d');
-background(canvas, '#47476b');
+var canvas = createCanvas(600, 1000);
 document.body.appendChild(canvas);
 
+var ctx = canvas.getContext('2d');
+ctx.rect(0, 0, canvas.width, canvas.height);
+
+var curr, prev;
+var stack = [];
 setup();
+
