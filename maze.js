@@ -186,7 +186,7 @@ var submitBttn = document.getElementById('submit');
 submitBttn.disabled = false;
 
 var startBttn = document.getElementById('start');
-startBttn.disabled = false;
+startBttn.disabled = true;
 
 var pauseBttn = document.getElementById('pause');
 pauseBttn.disabled = false;
@@ -194,6 +194,7 @@ pauseBttn.disabled = false;
 var resetBttn = document.getElementById('reset');
 
 submitBttn.addEventListener('click', function (e) {
+    startBttn.disabled = false;
     setup();
 });
 
@@ -211,13 +212,11 @@ pauseBttn.addEventListener('click', function (e) {
 resetBttn.addEventListener('click', function (e) {
     resetCanvas();
     stack = [];
-    if (pauseBttn.disabled) {
-        pauseBttn.disabled = false;
-        startBttn.disabled = false;
-    }
     curr = grid[0];
 
+    if (pauseBttn.disabled) pauseBttn.disabled = false;
     startBttn.disabled = false;
     submitBttn.disabled = false;
+
     cancelAnimationFrame(requestID);
 });
