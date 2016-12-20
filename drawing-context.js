@@ -1,13 +1,8 @@
-function Canvas (height, width) {
-    var canvas = document.createElement('canvas');
-    canvas.height = height;
-    canvas.width = width;
-    document.body.append(canvas);
-
+function Context (canvas) {
     this.ctx = canvas.getContext('2d');
 }
 
-Canvas.prototype = {
+Context.prototype = {
 
     drawLine: function (x, y, w, z) {
         this.ctx.beginPath();

@@ -1,3 +1,6 @@
+'use strict';
+
+
 /* Given a coordinate on the grid, return the corresponding index in the grid 
  * array.
  */
@@ -25,12 +28,14 @@ function randomNeighbor (neighbors) {
 }
 
 function generateGrid () {
+    grid = [];
+
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
 
             // Create a new Cell Object and display it on the canvas.
             var cell = new Cell(i,j);
-            canvas.drawCell(cell, cellSize);
+            context.drawCell(cell, cellSize);
 
             // Save the cell.
             grid.push(cell);
@@ -83,15 +88,21 @@ function removeWall(thisCell, thatCell) {
 /* Modified version of the recursive backtracking/depth first search algorithm.
  */
 function backtracker () {
+    requestID = requestAnimationFrame(backtracker);
+
     // Remove the highlight color of the previous visited cell
     if (prev) {
-        canvas.drawCell(prev, cellSize);
+        context.drawCell(prev, cellSize);
     }
 
-    if (!curr) return;
+    if (!curr) {
+        pauseBttn.disabled = true;
+        cancelAnimationFrame(requestID);
+        return;
+    }
 
     curr.visited = true;
-    canvas.highlightCell(curr, cellSize);
+    context.highlightCell(curr, cellSize);
 
     // Get a random neighbor that has not been visited.
     var next = randomNeighbor(curr.neighbors);
@@ -100,7 +111,7 @@ function backtracker () {
         // Remove the walls between curr and the neighbor.
         removeWall(curr, next);
 
-        canvas.highlightCell(curr, cellSize);
+        context.highlightCell(curr, cellSize);
         
         stack.push(curr);
         prev = curr;
@@ -111,17 +122,37 @@ function backtracker () {
         prev = curr;
         curr = stack.pop();
     }
-
-    window.requestAnimationFrame(backtracker);
 }
 
 
-function startAnimation () {
+function setup () {
+    canvas = document.getElementById('backtracker');
+
+    height = document.getElementById('height').value;
+    width = document.getElementById('width').value;
+    canvas.height = height;
+    canvas.width = width;
+
+    rows = Math.floor(height / cellSize);
+    cols = Math.floor(width / cellSize);
+
+    context = new Context(canvas);
+
     generateGrid();
     connectNeighbors();
-
     curr = grid[0];
-    window.requestAnimationFrame(backtracker);
+}
+
+function resetCanvas () {
+    for (let i = 0; i < grid.length; i++) {
+        grid[i].walls = [true, true, true, true];
+        grid[i].visited = false;
+        context.drawCell(grid[i], cellSize);
+    }
+}
+
+function startAnimation () {
+    requestID = requestAnimationFrame(backtracker);
 }
 
 function Cell (i, j) {
@@ -136,18 +167,53 @@ function Cell (i, j) {
     this.neighbors = [];
 }
 
-var height = 600;
-var width = 1000;
+var canvas, context;
+var height, width;
 var cellSize = 50;
-
-// Canvas for the recursive backtracking algorithm
-var canvas = new Canvas(height, width);
-
-var cols = Math.floor(width / cellSize);
-var rows = Math.floor(height / cellSize);
-
-var grid = []; 
+var rows, cols;
+var grid;
 var stack = [];
 
-var curr, prev;
-startAnimation();
+var curr, prev, requestID;
+
+/************** Needs Work *****************/
+
+var submitBttn = document.getElementById('submit');
+submitBttn.disabled = false;
+
+var startBttn = document.getElementById('start');
+startBttn.disabled = false;
+
+var pauseBttn = document.getElementById('pause');
+pauseBttn.disabled = false;
+
+var resetBttn = document.getElementById('reset');
+
+submitBttn.addEventListener('click', function (e) {
+    setup();
+});
+
+startBttn.addEventListener('click', function (e) {
+    this.disabled = true;
+    submitBttn.disabled = true;
+    startAnimation();
+});
+
+pauseBttn.addEventListener('click', function (e) {
+    startBttn.disabled = false;
+    cancelAnimationFrame(requestID);
+});
+
+resetBttn.addEventListener('click', function (e) {
+    resetCanvas();
+    stack = [];
+    if (pauseBttn.disabled) {
+        pauseBttn.disabled = false;
+        startBttn.disabled = false;
+    }
+    curr = grid[0];
+
+    startBttn.disabled = false;
+    submitBttn.disabled = false;
+    cancelAnimationFrame(requestID);
+});

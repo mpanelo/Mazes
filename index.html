@@ -4,15 +4,26 @@
   <meta charset="UTF-8">
   <title>Mazes</title>
 
-  <script src="canvas.js"></script>
+  <script src="drawing-context.js"></script>
   <script async src="maze.js"></script>
 
   <style>
     html { background-color: #333333; }
     html, body { margin: 0; }
+    h1 { text-align: center; color: #FFF; }
+    canvas { display: block; margin: 0 auto; margin-bottom: 25px;}
   </style>
 </head>
 <body>
+  <h1>Maze Algorithms</h1>
+  <canvas id="backtracker" height="600" width="1000"></canvas>
 
+  <input id="height" type="number" name="height" value="600" maxlength="5" size="5">
+  <input id="width" type="number" name="width" value="1000" maxlength="5" size="5">
+  <button id="submit" type="submit">Submit</button>
+
+  <button id="start" type="button">Run</button>
+  <button id="pause" type="button">Pause</button>
+  <button id="reset" type="button">Reset</button>
 </body>
 </html>
