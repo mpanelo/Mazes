@@ -189,12 +189,15 @@ var startBttn = document.getElementById('start');
 startBttn.disabled = true;
 
 var pauseBttn = document.getElementById('pause');
-pauseBttn.disabled = false;
+pauseBttn.disabled = true;
 
 var resetBttn = document.getElementById('reset');
+resetBttn.disabled = true;
 
 submitBttn.addEventListener('click', function (e) {
     startBttn.disabled = false;
+    pauseBttn.disabled = false;
+    resetBttn.disabled = false;
     setup();
 });
 
