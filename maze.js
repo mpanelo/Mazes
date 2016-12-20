@@ -130,6 +130,10 @@ function setup () {
 
     height = document.getElementById('height').value;
     width = document.getElementById('width').value;
+
+    if (height > 800) height = 800;
+    if (width > 1800) width = 1800;
+
     canvas.height = height;
     canvas.width = width;
 
