@@ -1,81 +1,107 @@
-function setup () {
-
-    // Compute the number of columns and rows for the 'grid'.
-    cols = Math.floor(canvas.width / cellSize);
-    rows = Math.floor(canvas.height / cellSize);
-
-    for (let x = 0; x < rows; x++) {
-        for (let y = 0; y < cols; y++) {
-
-            // Create a new Cell object and display it on the canvas.
-            var cell = new Cell(x, y);
-            cell.show();
-
-            // Save the Cell.
-            grid.push(cell);
-        }
-    }
-
-    // Connect the cells with their neighbors (i.e. the adjacent cells).
-    for (let i = 0; i < grid.length; i++) {
-        x = grid[i].x;
-        y = grid[i].y;
-
-        var neighbors = [grid[index(x - 1, y)], grid[index(x + 1, y)], 
-                         grid[index(x, y - 1)], grid[index(x, y + 1)]];
-
-        for (let j = 0; j < neighbors.length; j++) {
-            grid[i].addNeighbor(neighbors[j]);
-        }
-    }
-
-    // Set the initial cell to be the most top-left cell.
-    curr = grid[0];
-    // start thte animation.
-    window.requestAnimationFrame(backtracker);
-}
-
-
 /* Given a coordinate on the grid, return the corresponding index in the grid 
  * array.
  */
-function index (x, y) {
-    if ( x < 0 || x > rows - 1 || y < 0 || y > cols - 1) return -1;
-    return x * cols + y;
+function index (i, j) {
+    if ( i < 0 || i > rows - 1 || j < 0 || j > cols - 1) return -1;
+    return i * cols + j;
 }
 
+function randomNeighbor (neighbors) {
+    var validNeighbors = [];
+
+    for (let i = 0; i < neighbors.length; i++) {
+        if (!neighbors[i].visited) {
+            validNeighbors.push(neighbors[i]);
+        }
+    }
+
+    if (validNeighbors.length > 0) {
+        var max = validNeighbors.length - 1;
+        var min = 0;
+
+        var index = Math.floor(Math.random() * (max - min + 1) + min);
+        return validNeighbors[index];
+    }
+}
+
+function generateGrid () {
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+
+            // Create a new Cell Object and display it on the canvas.
+            var cell = new Cell(i,j);
+            canvas.drawCell(cell, cellSize);
+
+            // Save the cell.
+            grid.push(cell);
+        }
+    }
+}
+
+function connectNeighbors () {
+    for (let x = 0; x < grid.length; x++) {
+        var i = grid[x].i;
+        var j = grid[x].j;
+
+        var neighbors = [grid[index(i - 1, j)], grid[index(i + 1, j)], 
+                         grid[index(i, j - 1)], grid[index(i, j + 1)]];
+
+        for (let y = 0; y < neighbors.length; y++) {
+            if (neighbors[y]) {
+                grid[x].neighbors.push(neighbors[y]);
+            }
+        }
+    }
+}
+
+function removeWall(thisCell, thatCell) {
+    var x = thisCell.j - thatCell.j;
+    var y = thisCell.i - thatCell.i;
+
+    if (x !== 0) {
+        if (x === 1) {
+            thisCell.walls[3] = false;
+            thatCell.walls[1] = false;
+        }
+        else {
+            thisCell.walls[1] = false;
+            thatCell.walls[3] = false;
+        }
+    }
+    else {
+        if (y === 1) {
+            thisCell.walls[0] = false;
+            thatCell.walls[2] = false;
+        }
+        else {
+            thisCell.walls[2] = false;
+            thatCell.walls[0] = false;
+        }
+    }
+}
 
 /* Modified version of the recursive backtracking/depth first search algorithm.
  */
 function backtracker () {
-    // Revert the color of the previous visited cell by setting the prev's
-    // current field to false.
+    // Remove the highlight color of the previous visited cell
     if (prev) {
-        prev.current = false;
-
-        // Update prev on the canvas.
-        prev.show();
+        canvas.drawCell(prev, cellSize);
     }
 
+    if (!curr) return;
+
     curr.visited = true;
-
-    // Set the curr's current field to true, so that the current cell has a 
-    // unique color.
-    curr.current = true;
-
-    // Call show() to update curr on the canvas.
-    curr.show();
+    canvas.highlightCell(curr, cellSize);
 
     // Get a random neighbor that has not been visited.
-    var next = curr.randomNeighbor();
+    var next = randomNeighbor(curr.neighbors);
 
     if (next) {
         // Remove the walls between curr and the neighbor.
-        removeWalls(curr, next);
+        removeWall(curr, next);
 
-        // Call show() to update curr on the canvas.
-        curr.show();
-
+        canvas.highlightCell(curr, cellSize);
+        
         stack.push(curr);
         prev = curr;
         curr = next;
@@ -90,136 +116,38 @@ function backtracker () {
 }
 
 
-function removeWalls(cellA, cellB) {
-    var i = cellA.y - cellB.y;
+function startAnimation () {
+    generateGrid();
+    connectNeighbors();
 
-    if (i === 1) {
-        cellA.walls[3] = false;
-        cellB.walls[1] = false;
-    }
-    else if (i === -1) {
-        cellA.walls[1] = false;
-        cellB.walls[3] = false;
-    }
-
-    var j = cellA.x - cellB.x;
-
-    if (j === 1) {
-        cellA.walls[0] = false;
-        cellB.walls[2] = false;
-    }
-    else if (j === -1) {
-        cellA.walls[2] = false;
-        cellB.walls[0] = false;
-    }
+    curr = grid[0];
+    window.requestAnimationFrame(backtracker);
 }
 
+function Cell (i, j) {
+    this.i = i;
+    this.j = j;
+    this.visited = false;
 
-function createCanvas (h, w) {
-    var canvas = document.createElement('canvas');
-    canvas.height = h;
-    canvas.width = w;
+    // Wall order: top, right, bottom, left
+    this.walls = [true, true, true, true];
 
-    return canvas;
+    // The neighbors of the cell
+    this.neighbors = [];
 }
 
-
-/* Generates a line from the starting point to the ending point.
- */
-function line (startX, startY, endX, endY) {
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(endX, endY);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#FFF';
-    ctx.stroke();
-}
-
-class Cell {
-
-    constructor (x, y) {
-        this.x = x;
-        this.y = y;
-
-        // index 0 = top, index 1 = right, index 2 = bottom, index 3 = left
-        this.walls = [true, true, true, true];
-
-        this.visited = false;
-        this.current = false;
-
-        // The neighbors of this cell.
-        this.neighbors = [];
-    }
-
-    show () {
-        
-        // This generates the coordinates on the canvas. (Coordinates on the
-        // canvas are a bit counter-intuitive).
-        var i = this.y*cellSize;
-        var j = this.x*cellSize;
-
-
-        /*  Choose a color fill for the rectangle
-         *
-         *  1) The cell is the current cell explored, then the color fill is 
-         *     light blue.
-         *  2) The cell is not the current cell explored, but it has been
-         *     visited, then the color is dark blue.
-         *  3) The cell has neither been visited or the current cell explored,
-         *     then it is given a default color.
-         *
-         */
-
-        if (this.current) ctx.fillStyle = '#9999ff';
-        else if (this.visited) ctx.fillStyle = '#4500B2';
-        else ctx.fillStyle = '#47476b'; 
-
-        ctx.fillRect(i, j, cellSize, cellSize);
-
-        // Create a top wall if the wall exists.
-        if (this.walls[0]) line(i, j, i + cellSize, j);
-        // Create a right wall if the wall exists.
-        if (this.walls[1]) line(i + cellSize, j, i + cellSize, j + cellSize);
-        // Create a bottom wall if the wall exists.
-        if (this.walls[2]) line(i + cellSize, j + cellSize, i, j + cellSize);
-        // Create a right wall if the wall exists.
-        if (this.walls[3]) line(i, j + cellSize, i, j);
-    }
-
-    addNeighbor (cell) {
-        if (cell) this.neighbors.push(cell);
-    }
-
-    randomNeighbor () {
-        var validNeighbors = [];
-
-        for (let i = 0; i < this.neighbors.length; i++) {
-            if (!this.neighbors[i].visited) {
-                validNeighbors.push(this.neighbors[i]);
-            }
-        }
-
-        if (validNeighbors.length > 0) {
-            var max = validNeighbors.length - 1;
-            var min = 0;
-
-            var index = Math.floor(Math.random() * (max - min + 1) + min);
-            return validNeighbors[index];
-        }
-    }
-}
-
-
-var cols, rows;
+var height = 600;
+var width = 1000;
 var cellSize = 50;
-var grid = [];
 
-var canvas = createCanvas(600, 1000);
-document.body.appendChild(canvas);
+// Canvas for the recursive backtracking algorithm
+var canvas = new Canvas(height, width);
 
-var ctx = canvas.getContext('2d');
-ctx.rect(0, 0, canvas.width, canvas.height);
+var cols = Math.floor(width / cellSize);
+var rows = Math.floor(height / cellSize);
+
+var grid = []; 
+var stack = [];
 
 var curr, prev;
-var stack = [];
-setup();
+startAnimation();
