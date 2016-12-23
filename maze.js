@@ -27,6 +27,24 @@ function randomNeighbor (neighbors) {
     }
 }
 
+function generateEdges () {
+    edges = [];
+
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+            if (j != (cols - 1)) {
+                let e = new Edge(grid[index(i, j)], grid[index(i, j + 1)]);
+                edges.push(e);
+            }
+
+            if (i != (rows - 1)) {
+                let e = new Edge(grid[index(i + 1, j)], grid[index(i, j)]);
+                edges.push(e);
+            }
+        }
+    }
+}
+
 function generateGrid () {
     grid = [];
 
@@ -128,11 +146,8 @@ function backtracker () {
 function setup () {
     canvas = document.getElementById('backtracker');
 
-    height = document.getElementById('height').value;
-    width = document.getElementById('width').value;
-
-    if (height > 800) height = 800;
-    if (width > 1800) width = 1800;
+    height = window.innerHeight;
+    width = window.innerWidth - 200;
 
     canvas.height = height;
     canvas.width = width;
@@ -171,11 +186,17 @@ function Cell (i, j) {
     this.neighbors = [];
 }
 
+function Edge (cellOne, cellTwo) {
+    this.cellOne = cellOne;
+    this.cellTwo = cellTwo;
+}
+
 var canvas, context;
 var height, width;
 var cellSize = 50;
 var rows, cols;
 var grid;
+var edges;
 var stack = [];
 
 var curr, prev, requestID;
