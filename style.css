@@ -51,43 +51,25 @@ h2 {
   font-family: sans-serif;
 }
 
-#maze-form label {
-  color: white;
-}
-
-#start:hover {
-  background-color: #48c474;
-}
-
-#pause:hover {
-  background-color: #f9f06d;
-}
-
-#reset:hover {
-  background-color: #db3d3d;
-}
-
 #maze-control {
   margin: 15px 0;
 }
+
+#pause {
+  margin: 0 15px;
+}
+
 #maze-control button {
-  color: white;
-  text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
-  border: 2px solid white;
-  background-color: transparent;
   width: 60px;
   height: 60px;
   border-radius: 100%;
-  cursor: pointer;
-  outline: none;
-  transition: background-color 0.4s ease-out;
+  background-color: #3a3a3a;
+  box-shadow: 0 10px #191919;
+  border: 2.5px solid white;
 }
 
-#pause {
-  margin: 0 10px;
-}
-
-#cell-control {
+#maze-control button:active {
+  box-shadow: 0 2px #191919;
 }
 #cell-control button {
   transition: all 0s ease-out;
@@ -95,25 +77,28 @@ h2 {
   font-size: 1.5em;
   display: block;
   margin: 15px 0;
-  border: none;
-  outline: none;
-  cursor: pointer;
   height: 35px;
   width: 75px;
   border-radius: 0 0 5px 5px;
   text-align: center;
   text-decoration: none;
+  background-color: #ba2a49;
+  box-shadow: 0 6px #771b2f;
+}
+
+#cell-control button:active {
+  box-shadow: 0 2px #771b2f;
+}
+
+.btn { 
+  color: white;
+  border: none;
+  outline: none;
+  cursor: pointer;
   text-shadow: 0px -1px 0px rgba(0,0,0,0.4);
   position: relative;
 }
 
-#cell-control button:active {
+button.btn:active {
   top: 3px;
-  box-shadow: 0 2px #771b2f;
-}
-
-.btn-3d {
-  background-color: #ba2a49;
-  color: white;
-  box-shadow: 0 6px #771b2f;
 }
