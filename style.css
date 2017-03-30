@@ -1,0 +1,28 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+html {
+    height: 100%;
+    background-color: #333333;
+}
+body {
+    height: 100%;
+}
+
+main {
+    display: flex; 
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+h1 {
+    text-align: center;
+    color: #FFF;
+    margin: 25px 0;
+}
+
+#maze-form label {
+    color: white;
+}

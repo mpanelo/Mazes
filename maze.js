@@ -1,246 +1,237 @@
-'use strict';
-
-
-/* Given a coordinate on the grid, return the corresponding index in the grid 
- * array.
- */
+/* Given a coordinate on the grid, return the corresponding index in the array.
+*/
 function index (i, j) {
-    if ( i < 0 || i > rows - 1 || j < 0 || j > cols - 1) return -1;
-    return i * cols + j;
+  if ( i < 0 || i > rows - 1 || j < 0 || j > cols - 1) return -1;
+  return i * cols + j;
 }
 
+/* Return a random neighbor that has not been visited
+*/
 function randomNeighbor (neighbors) {
-    var validNeighbors = [];
+  var validNeighbors = neighbors.filter((node) => {
+    if (!node.visited) return node;
+  });
 
-    for (let i = 0; i < neighbors.length; i++) {
-        if (!neighbors[i].visited) {
-            validNeighbors.push(neighbors[i]);
-        }
-    }
+  if (validNeighbors.length > 0) {
+    var max = validNeighbors.length - 1;
+    var min = 0;
 
-    if (validNeighbors.length > 0) {
-        var max = validNeighbors.length - 1;
-        var min = 0;
-
-        var index = Math.floor(Math.random() * (max - min + 1) + min);
-        return validNeighbors[index];
-    }
+    var index = Math.floor(Math.random() * (max - min + 1) + min);
+    return validNeighbors[index];
+  }
 }
 
 function generateEdges () {
-    edges = [];
+  edges = [];
 
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-            if (j != (cols - 1)) {
-                let e = new Edge(grid[index(i, j)], grid[index(i, j + 1)]);
-                edges.push(e);
-            }
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      if (j != (cols - 1)) {
+        let e = new Edge(grid[index(i, j)], grid[index(i, j + 1)]);
+        edges.push(e);
+      }
 
-            if (i != (rows - 1)) {
-                let e = new Edge(grid[index(i + 1, j)], grid[index(i, j)]);
-                edges.push(e);
-            }
-        }
+      if (i != (rows - 1)) {
+        let e = new Edge(grid[index(i + 1, j)], grid[index(i, j)]);
+        edges.push(e);
+      }
     }
+  }
 }
 
-function generateGrid () {
-    grid = [];
-
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-
-            // Create a new Cell Object and display it on the canvas.
-            var cell = new Cell(i,j);
-            context.drawCell(cell, cellSize);
-
-            // Save the cell.
-            grid.push(cell);
-        }
+function generateCells(width, height) {
+  for (var x = 0; x < rows; x++) {
+    var row = [];
+    for (let y = 0; y < cols; y++) {
+      var cell = new Cell(y, x);
+      cell.width = width;
+      cell.height = height;
+      row.push(cell);
+      drawer.drawCell(cell);
     }
+    grid.push(row);
+  }
 }
 
 function connectNeighbors () {
-    for (let x = 0; x < grid.length; x++) {
-        var i = grid[x].i;
-        var j = grid[x].j;
+  for (var x = 0; x < grid.length; x++) {
+    for (var y = 0; y < grid[x].length; y++) {
+      var neighbors = []
+      if (x - 1 > -1)
+        neighbors.push(grid[x - 1][y])
+      if (x + 1 < grid.length)
+        neighbors.push(grid[x + 1][y])
+      if (y - 1 > -1)
+        neighbors.push(grid[x][y - 1])
+      if (y + 1 < grid[x].length)
+        neighbors.push(grid[x][y + 1])
 
-        var neighbors = [grid[index(i - 1, j)], grid[index(i + 1, j)], 
-                         grid[index(i, j - 1)], grid[index(i, j + 1)]];
-
-        for (let y = 0; y < neighbors.length; y++) {
-            if (neighbors[y]) {
-                grid[x].neighbors.push(neighbors[y]);
-            }
-        }
+      grid[x][y].neighbors = neighbors.slice();
     }
+  }
 }
 
-function removeWall(thisCell, thatCell) {
-    var x = thisCell.j - thatCell.j;
-    var y = thisCell.i - thatCell.i;
+function removeWall(cellA, cellB) {
+  var x = cellA.x - cellB.x;
+  var y = cellA.y - cellB.y;
 
-    if (x !== 0) {
-        if (x === 1) {
-            thisCell.walls[3] = false;
-            thatCell.walls[1] = false;
-        }
-        else {
-            thisCell.walls[1] = false;
-            thatCell.walls[3] = false;
-        }
+  if (x != 0) {
+    if (x == 1) {
+      cellA.walls["left"] = false;
+      cellB.walls["right"] = false;
     }
     else {
-        if (y === 1) {
-            thisCell.walls[0] = false;
-            thatCell.walls[2] = false;
-        }
-        else {
-            thisCell.walls[2] = false;
-            thatCell.walls[0] = false;
-        }
+      cellA.walls["right"] = false;
+      cellB.walls["left"] = false;
     }
+  }
+  else {
+    if (y == 1) {
+      cellA.walls["top"] = false;
+      cellB.walls["bottom"] = false;
+    }
+    else {
+      cellA.walls["bottom"] = false;
+      cellB.walls["top"] = false;
+    }
+  }
 }
 
 /* Modified version of the recursive backtracking/depth first search algorithm.
- */
+*/
 function backtracker () {
-    requestID = requestAnimationFrame(backtracker);
+  requestID = requestAnimationFrame(backtracker);
 
-    // Remove the highlight color of the previous visited cell
-    if (prev) {
-        context.drawCell(prev, cellSize);
-    }
+  // Remove the highlight color of the previous visited cell
+  if (prev) {
+    prev.color = VISITED_COLOR;
+    drawer.drawCell(prev);
+  }
 
-    if (!curr) {
-        pauseBttn.disabled = true;
-        cancelAnimationFrame(requestID);
-        return;
-    }
+  if (!curr) {
+    pauseBtn.disabled = true;
+    cancelAnimationFrame(requestID);
+    return;
+  }
 
-    curr.visited = true;
-    context.highlightCell(curr, cellSize);
+  curr.visited = true;
+  curr.color = HIGHLIGHT_COLOR;
+  drawer.drawCell(curr);
 
-    // Get a random neighbor that has not been visited.
-    var next = randomNeighbor(curr.neighbors);
+  // Get a random neighbor that has not been visited.
+  var next = randomNeighbor(curr.neighbors);
 
-    if (next) {
-        // Remove the walls between curr and the neighbor.
-        removeWall(curr, next);
+  if (next) {
+    // Remove the walls between curr and the neighbor.
+    removeWall(curr, next);
 
-        context.highlightCell(curr, cellSize);
-        
-        stack.push(curr);
-        prev = curr;
-        curr = next;
-    }
-    // There are no neighbors that have not been visited, so start backtracking.
-    else {
-        prev = curr;
-        curr = stack.pop();
-    }
+    drawer.drawCell(curr);
+
+    stack.push(curr);
+    prev = curr;
+    curr = next;
+  }
+  // There are no neighbors that have not been visited, so start backtracking.
+  else {
+    prev = curr;
+    curr = stack.pop();
+  }
 }
 
 
 function setup () {
-    canvas = document.getElementById('backtracker');
+  var canvas = document.getElementById('maze-canvas');
 
-    height = window.innerHeight;
-    width = window.innerWidth - 200;
+  var height = Math.ceil(window.innerHeight * 0.85);
+  var width = Math.ceil(window.innerWidth * 0.85);
 
-    canvas.height = height;
-    canvas.width = width;
+  var cellSize = (height > width) ? width * 0.04 : height * 0.04;
+  cellSize = Math.floor(cellSize);
+  cellSize = (cellSize < 20) ? 20 : cellSize;
 
-    rows = Math.floor(height / cellSize);
-    cols = Math.floor(width / cellSize);
+  rows = Math.floor(height / cellSize);
+  cols = Math.floor(width / cellSize);
 
-    context = new Context(canvas);
+  canvas.height = cellSize * rows;
+  canvas.width = cellSize * cols;
 
-    generateGrid();
-    connectNeighbors();
-    curr = grid[0];
+  drawer  = new Drawer(canvas.getContext("2d"));
+  generateCells(height=cellSize, width=cellSize);
+  connectNeighbors();
+  curr = grid[0][0];
 }
 
 function resetCanvas () {
-    for (let i = 0; i < grid.length; i++) {
-        grid[i].walls = [true, true, true, true];
-        grid[i].visited = false;
-        context.drawCell(grid[i], cellSize);
-    }
+  grid.forEach((row) => {
+    row.forEach((cell) => {
+      cell.visited = false;
+      cell.color = DEFAULT_COLOR;
+      cell.walls = {"top": true, "right": true, "bottom": true, "left": true};
+      drawer.drawCell(cell);
+    });
+  });
 }
 
 function startAnimation () {
-    requestID = requestAnimationFrame(backtracker);
+  requestID = requestAnimationFrame(backtracker);
 }
 
-function Cell (i, j) {
-    this.i = i;
-    this.j = j;
-    this.visited = false;
+function Cell(x, y) {
+  // Coordinates on the canvas
+  this.x = x;
+  this.y = y;
 
-    // Wall order: top, right, bottom, left
-    this.walls = [true, true, true, true];
+  this.visited = false;
+  this.color = DEFAULT_COLOR;
 
-    // The neighbors of the cell
-    this.neighbors = [];
+  this.walls = {
+    "top":    true,
+    "right":  true,
+    "bottom": true,
+    "left":   true
+  };
 }
 
-function Edge (cellOne, cellTwo) {
-    this.cellOne = cellOne;
-    this.cellTwo = cellTwo;
-}
+const DEFAULT_COLOR = "#47476b"
+const HIGHLIGHT_COLOR = "#9999ff";
+const VISITED_COLOR = "#4500B2";
 
-var canvas, context;
-var height, width;
-var cellSize = 50;
+var drawer;
 var rows, cols;
-var grid;
-var edges;
+var grid = [];
 var stack = [];
 
 var curr, prev, requestID;
 
-/************** Needs Work *****************/
+var startBtn = document.getElementById('start');
+var pauseBtn = document.getElementById('pause');
+var resetBtn = document.getElementById('reset');
 
-var submitBttn = document.getElementById('submit');
-submitBttn.disabled = false;
-
-var startBttn = document.getElementById('start');
-startBttn.disabled = true;
-
-var pauseBttn = document.getElementById('pause');
-pauseBttn.disabled = true;
-
-var resetBttn = document.getElementById('reset');
-resetBttn.disabled = true;
-
-submitBttn.addEventListener('click', function (e) {
-    startBttn.disabled = false;
-    pauseBttn.disabled = false;
-    resetBttn.disabled = false;
-    setup();
+window.addEventListener('load', () => {
+  startBtn.disabled = false;
+  pauseBtn.disabled = false;
+  resetBtn.disabled = false;
+  setup();
 });
 
-startBttn.addEventListener('click', function (e) {
-    this.disabled = true;
-    submitBttn.disabled = true;
-    startAnimation();
+startBtn.addEventListener('click', function (e) {
+  this.disabled = true;
+  startAnimation();
 });
 
-pauseBttn.addEventListener('click', function (e) {
-    startBttn.disabled = false;
-    cancelAnimationFrame(requestID);
+pauseBtn.addEventListener('click', function (e) {
+  startBtn.disabled = false;
+  cancelAnimationFrame(requestID);
 });
 
-resetBttn.addEventListener('click', function (e) {
-    resetCanvas();
-    stack = [];
-    curr = grid[0];
+resetBtn.addEventListener('click', function (e) {
+  resetCanvas();
+  stack = [];
+  curr = grid[0][0];
+  prev = null;
 
-    if (pauseBttn.disabled) pauseBttn.disabled = false;
-    startBttn.disabled = false;
-    submitBttn.disabled = false;
+  if (pauseBtn.disabled) pauseBtn.disabled = false;
+  startBtn.disabled = false;
 
-    cancelAnimationFrame(requestID);
+  cancelAnimationFrame(requestID);
 });

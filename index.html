@@ -1,42 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mazes</title>
-
-  <script src="drawing-context.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <script src="drawer.js"></script>
   <script async src="maze.js"></script>
-
-  <style>
-    html { background-color: #333333; margin: 0; }
-    body { margin: 0 auto; width: 90%; }
-    h1 { text-align: center; color: #FFF; }
-    canvas { display: block; margin: 0 auto; margin-bottom: 25px; }
-    label { color: #FFF; width: 60px; display: block;}
-    .formfield { display: flex; justify-content: space-between; flex-flow: wrap; }
-    .formfield:first-child { margin-bottom: 10px; }
-    form { max-width: 18%; margin-bottom: 20px; }
-  </style>
 </head>
 <body>
-  <h1>Maze Algorithms</h1>
-  <canvas id="backtracker"></canvas>
-
-  <form>
-    <div class="formfield">
-      <label for="height">Height</label>
-      <input id="height" type="text" name="height" maxlength="5" size="5">
-    </div>
-    <div class="formfield">
-      <label for="height">Width</label>
-      <input id="width" type="text" name="width" maxlength="5" size="5">
-    </div>
-  </form>
-
-  <button id="submit" type="submit">Submit</button>
-  <button id="start" type="button">Run</button>
-  <button id="pause" type="button">Pause</button>
-  <button id="reset" type="button">Reset</button>
+  <h1>Maze Generator</h1>
+  <main>
+    <div id="canvas-wrapper"><canvas id="maze-canvas"></canvas></div>
+    <form id="maze-form">
+      <label><input type="radio" name="cellsize" value="large">Large Cells</label>
+      <label><input type="radio" name="cellsize" value="medium">Medium Cells</label>
+      <label><input type="radio" name="cellsize" value="small">Small Cells</label>
+      <button id="start" type="button">Run</button>
+      <button id="pause" type="button">Pause</button>
+      <button id="reset" type="button">Reset</button>
+    </form>
+  </main>
 </body>
 </html>
