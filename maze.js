@@ -142,7 +142,7 @@ function backtracker () {
 function setup () {
   var canvas = document.getElementById('maze-canvas');
 
-  var height = Math.ceil(window.innerHeight * 0.85);
+  var height = Math.ceil(window.innerHeight * 0.75);
   var width = Math.ceil(window.innerWidth * 0.85);
 
   var cellSize = (height > width) ? width * 0.04 : height * 0.04;
