@@ -1,10 +1,3 @@
-/* Given a coordinate on the grid, return the corresponding index in the array.
-*/
-function index (i, j) {
-  if ( i < 0 || i > rows - 1 || j < 0 || j > cols - 1) return -1;
-  return i * cols + j;
-}
-
 /* Return a random neighbor that has not been visited
 */
 function randomNeighbor (neighbors) {
@@ -18,24 +11,6 @@ function randomNeighbor (neighbors) {
 
     var index = Math.floor(Math.random() * (max - min + 1) + min);
     return validNeighbors[index];
-  }
-}
-
-function generateEdges () {
-  edges = [];
-
-  for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < cols; j++) {
-      if (j != (cols - 1)) {
-        let e = new Edge(grid[index(i, j)], grid[index(i, j + 1)]);
-        edges.push(e);
-      }
-
-      if (i != (rows - 1)) {
-        let e = new Edge(grid[index(i + 1, j)], grid[index(i, j)]);
-        edges.push(e);
-      }
-    }
   }
 }
 
@@ -108,12 +83,6 @@ function backtracker () {
     drawer.drawCell(prev);
   }
 
-  if (!curr) {
-    pauseBtn.disabled = true;
-    cancelAnimationFrame(requestID);
-    return;
-  }
-
   curr.visited = true;
   curr.color = HIGHLIGHT_COLOR;
   drawer.drawCell(curr);
@@ -122,7 +91,7 @@ function backtracker () {
   var next = randomNeighbor(curr.neighbors);
 
   if (next) {
-    // Remove the walls between curr and the neighbor.
+    // Remove the wall between curr and the neighbor.
     removeWall(curr, next);
 
     drawer.drawCell(curr);
@@ -133,15 +102,17 @@ function backtracker () {
   }
   // There are no neighbors that have not been visited, so start backtracking.
   else {
-    prev = curr;
-    curr = stack.pop();
+    // Backtrack as long as there are elements in the stack. 
+    // Otherwise, cancel the animation.
+    if (stack.length > 0) {
+      prev = curr;
+      curr = stack.pop();
+    } else {
+      curr.color = VISITED_COLOR;
+      drawer.drawCell(curr);
+      cancelAnimationFrame(requestID);
+    }
   }
-}
-
-
-function loaded () {
-  canvas = document.getElementById("maze-canvas");
-  drawer = new Drawer(canvas.getContext("2d"));
 }
 
 function initValues () {
@@ -151,7 +122,7 @@ function initValues () {
   var height = Math.ceil(window.innerHeight * 0.75);
   var width = Math.ceil(window.innerWidth * 0.85);
 
-  var cellSize = (height > width) ? width * 0.04 : height * 0.04;
+  var cellSize = (height > width) ? width * percentage : height * percentage;
   cellSize = Math.floor(cellSize);
   cellSize = (cellSize < 20) ? 20 : cellSize;
 
@@ -179,13 +150,9 @@ function resetCells () {
   });
 }
 
-function enableButtons () {
-  var btns = document.getElementsByTagName("button");
-  Array.from(btns).forEach(btn => btn.disabled = false);
-}
-
 function startAnimation () {
-  requestID = requestAnimationFrame(backtracker);
+  if (!requestID)
+    requestID = requestAnimationFrame(backtracker);
 }
 
 function Cell(x, y) {
@@ -208,40 +175,56 @@ const DEFAULT_COLOR = "#47476b"
 const HIGHLIGHT_COLOR = "#9999ff";
 const VISITED_COLOR = "#4500B2";
 
-var canvas, drawer;
+const canvas = document.getElementById("maze-canvas");
+const drawer = new Drawer(canvas.getContext("2d"));
+
 var rows, cols;
 var grid, stack;
 
-var curr, prev, requestID;
+var curr, prev, requestID, percentage;
+percentage = 0.04;
 
-var startBtn = document.getElementById('start');
-var pauseBtn = document.getElementById('pause');
-var resetBtn = document.getElementById('reset');
+const startBtn = document.getElementById('start');
+const pauseBtn = document.getElementById('pause');
+const resetBtn = document.getElementById('reset');
+
+const lgCellBtn = document.getElementById('lg-cells');
+const mdCellBtn = document.getElementById('md-cells');
+const smCellBtn = document.getElementById('sm-cells');
 
 window.addEventListener('load', () => {
-  enableButtons();
-  loaded();
   initValues();
 });
 
-startBtn.addEventListener('click', function (e) {
-  this.disabled = true;
+startBtn.addEventListener('click', (e) => {
   startAnimation();
 });
 
-pauseBtn.addEventListener('click', function (e) {
-  startBtn.disabled = false;
+pauseBtn.addEventListener('click', (e) => {
   cancelAnimationFrame(requestID);
+  requestID = null;
 });
 
-resetBtn.addEventListener('click', function (e) {
+resetBtn.addEventListener('click', (e) => {
   resetCells();
   stack = [];
   curr = grid[0][0];
   prev = null;
 
-  if (pauseBtn.disabled) pauseBtn.disabled = false;
-  startBtn.disabled = false;
-
   cancelAnimationFrame(requestID);
+  requestID = null;
 });
+
+function updateValues (e) {
+  percentage = Number(e.target.value);
+  initValues();
+  if (requestID)
+    cancelAnimationFrame(requestID);
+  requestID = null;
+}
+
+lgCellBtn.addEventListener('click', updateValues);
+
+mdCellBtn.addEventListener('click', updateValues);
+
+smCellBtn.addEventListener('click', updateValues);
