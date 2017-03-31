@@ -139,8 +139,14 @@ function backtracker () {
 }
 
 
-function setup () {
-  var canvas = document.getElementById('maze-canvas');
+function loaded () {
+  canvas = document.getElementById("maze-canvas");
+  drawer = new Drawer(canvas.getContext("2d"));
+}
+
+function initValues () {
+  grid = [];
+  stack = [];
 
   var height = Math.ceil(window.innerHeight * 0.75);
   var width = Math.ceil(window.innerWidth * 0.85);
@@ -155,13 +161,14 @@ function setup () {
   canvas.height = cellSize * rows;
   canvas.width = cellSize * cols;
 
-  drawer  = new Drawer(canvas.getContext("2d"));
   generateCells(height=cellSize, width=cellSize);
   connectNeighbors();
+
   curr = grid[0][0];
+  prev = null;
 }
 
-function resetCanvas () {
+function resetCells () {
   grid.forEach((row) => {
     row.forEach((cell) => {
       cell.visited = false;
@@ -170,6 +177,11 @@ function resetCanvas () {
       drawer.drawCell(cell);
     });
   });
+}
+
+function enableButtons () {
+  var btns = document.getElementsByTagName("button");
+  Array.from(btns).forEach(btn => btn.disabled = false);
 }
 
 function startAnimation () {
@@ -196,10 +208,9 @@ const DEFAULT_COLOR = "#47476b"
 const HIGHLIGHT_COLOR = "#9999ff";
 const VISITED_COLOR = "#4500B2";
 
-var drawer;
+var canvas, drawer;
 var rows, cols;
-var grid = [];
-var stack = [];
+var grid, stack;
 
 var curr, prev, requestID;
 
@@ -208,10 +219,9 @@ var pauseBtn = document.getElementById('pause');
 var resetBtn = document.getElementById('reset');
 
 window.addEventListener('load', () => {
-  startBtn.disabled = false;
-  pauseBtn.disabled = false;
-  resetBtn.disabled = false;
-  setup();
+  enableButtons();
+  loaded();
+  initValues();
 });
 
 startBtn.addEventListener('click', function (e) {
@@ -225,7 +235,7 @@ pauseBtn.addEventListener('click', function (e) {
 });
 
 resetBtn.addEventListener('click', function (e) {
-  resetCanvas();
+  resetCells();
   stack = [];
   curr = grid[0][0];
   prev = null;

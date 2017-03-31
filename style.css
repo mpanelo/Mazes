@@ -71,6 +71,7 @@ h2 {
 #maze-control button:active {
   box-shadow: 0 2px #191919;
 }
+
 #cell-control button {
   transition: all 0s ease-out;
   font-family: 'VT323', monospace;
